@@ -8,9 +8,8 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 
-/* MARK NAME Seu Nome Aqui */
-/* MARK NAME Nome de Outro Integrante Aqui */
-/* MARK NAME E Etc */
+/* Vinicius Silva Gomes - 2021421869 */
+/* Mirna                - ********** */
 
 /****************************************************************
  * Shell xv6 simplificado
@@ -76,7 +75,9 @@ runcmd(struct cmd *cmd)
     /* MARK START task2
      * TAREFA2: Implemente codigo abaixo para executar
      * comandos simples. */
-    fprintf(stderr, "exec nao implementado\n");
+
+    execvp(ecmd->argv[0], ecmd->argv);
+
     /* MARK END task2 */
     break;
 
@@ -86,7 +87,10 @@ runcmd(struct cmd *cmd)
     /* MARK START task3
      * TAREFA3: Implemente codigo abaixo para executar
      * comando com redirecionamento. */
+    
+    // TODO
     fprintf(stderr, "redir nao implementado\n");
+    
     /* MARK END task3 */
     runcmd(rcmd->cmd);
     break;
