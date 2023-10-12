@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 struct process {
   int pid;
@@ -15,9 +16,9 @@ struct process {
   char state;
 };
 
-int process_list();
+void* process_list(void* args);
 
-int send_signal();
+void* send_signal(void* args);
 
 int is_process(char* process);
 
@@ -26,27 +27,27 @@ struct process populate_process(int pid, char* user, char name[], char state);
 void print_process_table(struct process* p, int proc_count);
 
 int main(int argc, char* argv[]) {
-  while (1) {
-    int proc_st = process_list();
-    if (proc_st == -1) {
-      perror("Falha ao listar os processos");
-      return 0;
-    }
+  pthread_t proc_tid, sig_tid;
 
-    int sig_st = send_signal();
-    if (sig_st != 0) {
-      perror("Falha ao matar esse processo");
-      return 0;
-    }
+  while (1) {
+    pthread_create(&proc_tid, NULL, &process_list, NULL);
+    pthread_create(&sig_tid, NULL, &send_signal, NULL);
+
+    pthread_join(sig_tid, NULL);
+
+    sleep(1);
   }
 
   return 0;
 }
 
-int process_list() {
+void* process_list(void* args) {
   DIR* proc_dir = opendir("/proc");
 
-  if (proc_dir == NULL) return -1;
+  if (proc_dir == NULL) {
+    perror("Falha ao acessar a pasta de processis /proc");
+    pthread_exit(NULL);
+  }
 
   struct dirent* entry;
   int proc_count = 0;
@@ -59,14 +60,17 @@ int process_list() {
 
       struct stat st;
       stat(buf, &st);
-      struct passwd* pw = getpwuid(st.st_uid);
 
+      struct passwd* pw = getpwuid(st.st_uid);
       if (pw == NULL) continue;
 
       char* user = pw->pw_name;
 
       FILE* f = fopen(buf, "r");
-      if (f == NULL) return -1;
+      if (f == NULL) {
+        perror("Falha ao acessar o arquivo de status de um processo");
+        pthread_exit(NULL);
+      }
 
       int pid;
       char name[256], state;
@@ -80,23 +84,25 @@ int process_list() {
       proc_count++;
     }
   }
+
   print_process_table(p, proc_count);
 
   closedir(proc_dir);
 
   free(p);
-
-  return 0;
 }
 
-int send_signal() {
+void* send_signal(void* args) {
   int pid, signal;
 
-  scanf("%i %i", &pid, &signal);
+  scanf("%d %d", &pid, &signal);
 
   int sig_st = kill(pid, signal);
 
-  return sig_st;
+  if (sig_st != 0) {
+    perror("Falha ao matar esse processo");
+    pthread_exit(NULL);
+  }
 }
 
 int is_process(char* process) {
