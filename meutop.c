@@ -16,30 +16,34 @@ struct process {
   char state;
 };
 
-void* process_list(void* args);
+void* process_list(void*);
 
-void* send_signal(void* args);
+void* send_signal(void*);
 
-int is_process(char* process);
+int is_process(char*);
 
-struct process populate_process(int pid, char* user, char name[], char state);
+struct process populate_process(int, char*, char[], char);
 
-void print_process_table(struct process* p, int proc_count);
+void print_process_table(struct process*, int);
+
+void clear();
 
 int main(int argc, char* argv[]) {
   pthread_t proc_tid, sig_tid;
 
   pthread_create(&proc_tid, NULL, &process_list, NULL);
-
   pthread_create(&sig_tid, NULL, &send_signal, NULL);
 
   pthread_join(sig_tid, NULL);
+  pthread_cancel(proc_tid);
 
   return 0;
 }
 
 void* process_list(void* args) {
   while (1) {
+    clear();
+
     DIR* proc_dir = opendir("/proc");
 
     if (proc_dir == NULL) {
@@ -88,8 +92,6 @@ void* process_list(void* args) {
     closedir(proc_dir);
 
     free(p);
-
-    printf("\r");
 
     sleep(1);
   }
@@ -152,3 +154,10 @@ void print_process_table(struct process* p, int proc_count) {
            p[i].state);
   }
 }
+
+/*
+ * uma forma alternativa limpar o terminal sem usar o comando system (cls ou
+ * clear) pois o parâmetro passado é diferente entre sistemas Windows e
+ * Unix-like
+ */
+void clear() { printf("\033[H\033[J"); }

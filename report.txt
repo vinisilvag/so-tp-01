@@ -13,14 +13,58 @@ Preencha as linhas abaixo com o nome e o e-mail dos integrantes do
 grupo.  Substitua XX pela contribuição de cada membro do grupo no
 desenvolvimento do trabalho.
 
-Vinicius Silva Gomes <vinicius.svgomes@gmail.com> 60%
-Mirna Mendonça e Silva <email@domain.br> 40%
+Vinicius Silva Gomes   <vinicius.svgomes@gmail.com> 50%
+Mirna Mendonça e Silva <mirnan21032002@gmail.com>   50%
 
 3. Referências bibliográficas
 
-Adicione aqui as referências bibliográficas.
+https://linux.die.net/man/3/exec
+https://man7.org/linux/man-pages/man2/dup.2.html
+https://pubs.opengroup.org/onlinepubs/007904875/functions/open.html
+https://www.gnu.org/software/libc/manual/html_node/Permission-Bits.html
+https://pubs.opengroup.org/onlinepubs/9699919799/functions/pipe.html
+https://man7.org/linux/man-pages/man2/fork.2.html
+https://pubs.opengroup.org/onlinepubs/9699919799/functions/close.html#tag_16_67
+https://en.wikipedia.org/wiki/Standard_streams
+https://www.geeksforgeeks.org/thread-functions-in-c-c/
+https://man7.org/linux/man-pages/man3/opendir.3.html
+https://pubs.opengroup.org/onlinepubs/7908799/xsh/readdir.html
+https://pubs.opengroup.org/onlinepubs/009604499/functions/closedir.html
+https://man7.org/linux/man-pages/man2/stat.2.html
+https://man7.org/linux/man-pages/man3/stat.3type.html
+https://www.mkssoftware.com/docs/man5/struct_passwd.5.asp
+https://pubs.opengroup.org/onlinepubs/009604499/functions/getpwuid.html
+https://www.geeksforgeeks.org/basics-file-handling-c/
+https://linux.die.net/man/2/kill
 
 4. Estruturas de dados
 
-Descreva e justifique as estruturas de dados e algoritmos utilizados
-em sua solução.
+Parte #1: Desenvolvimento do Shell
+
+A primeira parte foi realizada, principalmente, seguindo as dicas
+fornecidas pelo professor e pesquisando a respeito das funções sugeridas.
+Desse modo, cada uma das tarefas pode ser realizada com sucesso e serão
+melhor detalhadas a seguir:
+
+Tarefa 2:
+TODO
+
+Tarefa 3:
+TODO
+
+Tarefa 4:
+TODO
+
+
+Parte #2: Implementando um TOP
+
+TODO
+
+Para facilitar o armazenamento dos processos para que a tabela de
+processos seja montada, uma estrutura de dados `process` foi declarada
+contendo os campos:
+
+* pid: ID do processo
+* user: usuário que é dono do processo
+* name: nome do processo
+* state: estado atual do processo
