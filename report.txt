@@ -36,6 +36,7 @@ https://www.mkssoftware.com/docs/man5/struct_passwd.5.asp
 https://pubs.opengroup.org/onlinepubs/009604499/functions/getpwuid.html
 https://www.geeksforgeeks.org/basics-file-handling-c/
 https://linux.die.net/man/2/kill
+https://en.wikipedia.org/wiki/ANSI_escape_code
 
 4. Estruturas de dados
 
@@ -46,25 +47,90 @@ fornecidas pelo professor e pesquisando a respeito das funções sugeridas.
 Desse modo, cada uma das tarefas pode ser realizada com sucesso e serão
 melhor detalhadas a seguir:
 
-Tarefa 2:
-TODO
+Tarefa 2: Executando Comandos Simples
 
-Tarefa 3:
-TODO
+Nesta etapa, concentramos nossos esforços na capacidade do Shell de executar
+comandos simples. Isso implica na execução de instruções como $ ls ou $ cat sh.c.
+A funcionalidade foi implementada utilizando a função execvp, garantindo que a
+execução ocorra apenas quando o primeiro argumento do comando não é nulo.
+Durante esse processo, a estrutura execcmd foi devidamente preenchida para
+possibilitar a execução eficaz dos comandos.
 
-Tarefa 4:
-TODO
+Tarefa 3: Redirecionamento de Entrada e Saída
+
+Essa tarefa focou-se na implementação do redirecionamento de entrada e saída.
+Utilizamos a função open para abrir o arquivo especificado em rcmd->file,
+considerando as permissões indicadas em rcmd->mode. Em seguida, a função dup2
+foi empregada para redirecionar o descritor de arquivo rcmd->fd para o arquivo
+recém-aberto. Essa abordagem proporciona um redirecionamento preciso durante
+a execução dos comandos, agregando flexibilidade à funcionalidade do Shell.
+
+Tarefa 4: Sequenciamento de Comandos (Pipes)
+
+Nesta tarefa implementamos a execução de comandos em sequência, introduzindo o
+conceito de pipes. A criação de um pipe, com pipe(p), permitiu estabelecer uma
+comunicação eficaz entre processos. Com o uso de fork(), geramos um novo processo
+filho. O pai redireciona a saída padrão para a extremidade de leitura do pipe,
+enquanto o filho redireciona a entrada padrão para a extremidade de gravação
+do pipe. Essa abordagem facilita a execução eficiente de comandos encadeados,
+enriquecendo a funcionalidade geral do Shell.
+
+Essas implementações formam uma base sólida para o desenvolvimento contínuo do Shell,
+fornecendo as funcionalidades fundamentais necessárias para o processamento de comandos
+no contexto do sistema operacional.
 
 
 Parte #2: Implementando um TOP
 
-TODO
+Estruturas de Dados:
 
 Para facilitar o armazenamento dos processos para que a tabela de
-processos seja montada, uma estrutura de dados `process` foi declarada
-contendo os campos:
+seja montada, uma estrutura de dados `process` foi declarada contendo
+os campos:
 
 * pid: ID do processo
 * user: usuário que é dono do processo
 * name: nome do processo
 * state: estado atual do processo
+
+Funções Implementadas:
+
+* process_list: Esta função, executada em uma thread separada, cria e
+atualiza uma lista de processos continuamente. Para cada processo
+identificado nos diretórios em /proc, ela coleta informações relevantes
+e exibe uma tabela formatada ao final.
+
+* send_signal: Uma função que aceita entrada do usuário para enviar sinais
+a processos específicos. Esta funcionalidade é realizada em uma thread
+separada, interagindo com a entrada do usuário.
+
+* is_process: Função auxiliar que verifica se um diretório no caminho
+/proc corresponde a um processo válido.
+
+* populate_process: Função auxiliar que cria, preenche e retorna uma instância
+do tipo `process` com as informações específicas do processo, que são passadas
+como parâmetros.
+
+* print_process_table: Função que exibe a tabela de processos formatada
+na saída padrão.
+
+* clear: Função que limpa a tela do terminal, proporcionando uma apresentação
+mais limpa da tabela de processos. Para essa função, foram usados os `ANSI
+escape sequences` para controlar a localização do cursor e limpar o terminal
+adequadamente, sem que seja necessário o uso da função system (diferenciação
+entre `clear` e `cls` a depender do tipo de sistema operacional).
+
+Fluxo principal de execução:
+
+A função `main` dispara duas threads, de modo que umaserá responsáveis por
+buscar os processos e exibir a lista formatada na saída padrão e a outra
+irá esperar o ID de um processo e um sinal a ser enviado para esse processo.
+
+A função da primeira thread executa num looping infinito, limpando a tela 
+e atualizando a lista de processos a cada 1 segundo. Já a função que espera
+a entrada do usuário, após ser disparada, ela é aguardada pela `main` com
+a função `pthread_join`. Uma vez que o usuário insira as informações, a
+`main` dispara, sem seguida, a função `pthread_cancel`, para interromper
+o loop da primeira thread e, com isso, encerrar a execução de ambas. Dessa
+forma, todas as threads são finalizadas corretamente e não há vazamentos
+de memória.
