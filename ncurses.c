@@ -1,5 +1,6 @@
 #include <ctype.h>
 #include <dirent.h>
+#include <ncurses.h>
 #include <pthread.h>
 #include <pwd.h>
 #include <signal.h>
@@ -24,26 +25,41 @@ int is_process(char*);
 
 struct process populate_process(int, char*, char[], char);
 
-void print_process_table(struct process*, int);
+void print_process_table(struct process*, int, WINDOW*);
 
-void clear();
+// void clear();
 
 int main(int argc, char* argv[]) {
+  initscr();
+
+  int height = LINES;
+  int width = COLS;
+
+  WINDOW* proc_win = newwin(22, width, 0, 0);
+  WINDOW* sig_win = newwin(height - 22, width, 0, 0);
+
   pthread_t proc_tid, sig_tid;
 
-  pthread_create(&proc_tid, NULL, &process_list, NULL);
-  pthread_create(&sig_tid, NULL, &send_signal, NULL);
+  int* cond;
 
-  pthread_join(sig_tid, NULL);
+  pthread_create(&proc_tid, NULL, &process_list, proc_win);
+
+  do {
+    pthread_create(&sig_tid, NULL, &send_signal, sig_win);
+    pthread_join(sig_tid, (void*)&cond);
+  } while (cond);
+
   pthread_cancel(proc_tid);
+
+  endwin();
 
   return 0;
 }
 
 void* process_list(void* args) {
-  while (1) {
-    clear();
+  WINDOW* proc_win = (WINDOW*)args;
 
+  while (1) {
     DIR* proc_dir = opendir("/proc");
 
     if (proc_dir == NULL) {
@@ -87,33 +103,51 @@ void* process_list(void* args) {
       }
     }
 
-    print_process_table(p, proc_count);
+    print_process_table(p, proc_count, proc_win);
 
     closedir(proc_dir);
 
     free(p);
 
-    sleep(1);
+    usleep(1000000);
+
+    wclear(proc_win);
   }
 }
 
 void* send_signal(void* args) {
-  while (1) {
-    int pid, signal;
+  WINDOW* sig_win = (WINDOW*)args;
 
-    scanf("%d %d", &pid, &signal);
+  char str[256];
+  int pid, signal;
 
-    int sig_st = kill(pid, signal);
+  mvgetstr(22, 0, str);
 
-    if (sig_st == 0) {
-      printf("Sinal %d enviado para o PID %d\n", signal, pid);
-      break;
-    } else {
-      perror("Falha ao matar esse processo");
-    }
+  sscanf(str, "%d %d", &pid, &signal);
+
+  int sig_st = kill(pid, signal);
+
+  if (sig_st == 0) {
+    mvprintw(23, 0, "Sinal %d enviado para o PID %d\n", signal, pid);
+
+    refresh();
+
+    usleep(2000000);
+
+    pthread_exit((void*)0);
+  } else {
+    mvprintw(23, 0, "Falha ao matar esse processo");
+
+    refresh();
+
+    usleep(2000000);
+
+    wclear(sig_win);
+
+    refresh();
+
+    pthread_exit((void*)1);
   }
-
-  return NULL;
 }
 
 int is_process(char* process) {
@@ -139,23 +173,27 @@ struct process populate_process(int pid, char* user, char name[], char state) {
   return p;
 }
 
-void print_process_table(struct process* p, int proc_count) {
-  printf(
+void print_process_table(struct process* p, int proc_count, WINDOW* proc_win) {
+  wprintw(
+      proc_win,
       "PID      | User                     | PROCNAME                        "
       "  "
       "         "
       "| Estado "
       "|\n");
-  printf(
+  wprintw(
+      proc_win,
       "---------|--------------------------|-----------------------------------"
       "---------|"
       "--------"
       "|\n");
 
   for (int i = 0; i < proc_count; i++) {
-    printf("%-9d| %-24s | %-42s | %-6c |\n", p[i].pid, p[i].user, p[i].name,
-           p[i].state);
+    wprintw(proc_win, "%-9d| %-24s | %-42s | %-6c |\n", p[i].pid, p[i].user,
+            p[i].name, p[i].state);
   }
+
+  wrefresh(proc_win);
 }
 
 /*
@@ -163,4 +201,4 @@ void print_process_table(struct process* p, int proc_count) {
  * clear) pois o parâmetro passado é diferente entre sistemas Windows e
  * Unix-like
  */
-void clear() { printf("\033[H\033[J"); }
+// void clear() { printf("\033[H\033[J"); }

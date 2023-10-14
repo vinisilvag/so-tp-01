@@ -128,9 +128,11 @@ irá esperar o ID de um processo e um sinal a ser enviado para esse processo.
 
 A função da primeira thread executa num looping infinito, limpando a tela 
 e atualizando a lista de processos a cada 1 segundo. Já a função que espera
-a entrada do usuário, após ser disparada, ela é aguardada pela `main` com
-a função `pthread_join`. Uma vez que o usuário insira as informações, a
-`main` dispara, sem seguida, a função `pthread_cancel`, para interromper
-o loop da primeira thread e, com isso, encerrar a execução de ambas. Dessa
-forma, todas as threads são finalizadas corretamente e não há vazamentos
-de memória.
+a entrada do usuário, após ser disparada, é aguardada pela `main` com a
+função `pthread_join`. Uma vez que o usuário insira as informações e um
+sinal válido seja enviado ao processo com PID informado, a thread termina
+(caso não, ela permanece em looping até que um processo e um sinal válido
+sejam digitados). Após isso, a `main` dispara a função `pthread_cancel`,
+para interromper o loop da primeira thread e, com isso, encerrar a execução
+de ambas. Dessa forma, todas as threads são finalizadas corretamente e não
+há vazamentos de memória.
