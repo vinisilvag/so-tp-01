@@ -8,7 +8,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-/* Vinicius Silva Gomes - 2021421869 */
+/* Vinicius Silva Gomes   - 2021421869 */
 /* Mirna Mendonça e Silva - 2021421940 */
 
 /****************************************************************
@@ -84,7 +84,8 @@ void runcmd(struct cmd *cmd) {
       /* MARK START task3
        * TAREFA3: Implemente codigo abaixo para executar
        * comando com redirecionamento. */
-      dup2(open(rcmd->file, rcmd->mode), rcmd->fd);
+      // flag de permissão de leitura necessária
+      dup2(open(rcmd->file, rcmd->mode, S_IRUSR), rcmd->fd);
       /* MARK END task3 */
 
       runcmd(rcmd->cmd);
@@ -107,6 +108,8 @@ void runcmd(struct cmd *cmd) {
         close(p[0]);
         dup2(p[1], fileno(stdout));
         runcmd(pcmd->left);
+      } else {
+        perror("fork error");
       }
       /* MARK END task4 */
 
